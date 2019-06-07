@@ -9,10 +9,10 @@ public class Projekt {
     private LocalDateTime DataCzasUtworzenia;
     private LocalDate DataOddania;
 
-    public Projekt() {
+    Projekt() {
     }
 
-    public Projekt(int projektId, String nazwa, String opis, LocalDateTime dataCzasUtworzenia, LocalDate dataOddania) {
+    Projekt(int projektId, String nazwa, String opis, LocalDateTime dataCzasUtworzenia, LocalDate dataOddania) {
         ProjektId = projektId;
         Nazwa = nazwa;
         Opis = opis;

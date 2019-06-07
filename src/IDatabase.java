@@ -5,5 +5,7 @@ public interface IDatabase {
 
     boolean Update(Projekt projekt);
 
+    boolean Delete(Integer projektId);
+
     List<Projekt> GetAll(Integer offset, Integer limit);
 }

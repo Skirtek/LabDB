@@ -10,22 +10,21 @@ public class Database implements IDatabase {
     public boolean Insert(Projekt projekt) {
         boolean IsSuccess = false;
         String query = "INSERT INTO projekt(nazwa,opis, dataczas_utworzenia,data_oddania) VALUES (?, ?, ?, ?)";
-        try(Connection connection = DriverManager.getConnection(DatabaseSettings.DBURL, DatabaseSettings.DBUSER, DatabaseSettings.DBPASS)){
+        try (Connection connection = DataSource.GetConnection()) {
             PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, projekt.getNazwa());
             statement.setString(2, projekt.getOpis());
             statement.setObject(3, projekt.getDataCzasUtworzenia());
             statement.setObject(4, projekt.getDataOddania());
 
-            if(IsSuccess = statement.executeUpdate() > 0){
+            if (IsSuccess = statement.executeUpdate() > 0) {
                 ResultSet keys = statement.getGeneratedKeys();
-                if(keys.next()){
+                if (keys.next()) {
                     projekt.setProjektId(keys.getInt(1));
                 }
                 keys.close();
             }
-        }
-        catch(SQLException ex){
+        } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
 
@@ -35,24 +34,43 @@ public class Database implements IDatabase {
     @Override
     public boolean Update(Projekt projekt) {
         boolean IsSuccess = false;
-        String query = "UPDATE projekt SET nazwa = ? , opis = ?, dataczas_utworzenia = ?, data_oddania = ? WHERE projekt_id = "+projekt.getProjektId()+";";
-        try(Connection connection = DriverManager.getConnection(DatabaseSettings.DBURL, DatabaseSettings.DBUSER, DatabaseSettings.DBPASS)){
+        String query = "UPDATE projekt SET nazwa = ? , opis = ?, dataczas_utworzenia = ?, data_oddania = ? WHERE projekt_id = " + projekt.getProjektId() + ";";
+        try (Connection connection = DataSource.GetConnection()) {
             PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
             statement.setString(1, projekt.getNazwa());
             statement.setString(2, projekt.getOpis());
             statement.setObject(3, projekt.getDataCzasUtworzenia());
             statement.setObject(4, projekt.getDataOddania());
 
-            if(IsSuccess = statement.executeUpdate() > 0){
+            if (IsSuccess = statement.executeUpdate() > 0) {
                 ResultSet keys = statement.getGeneratedKeys();
-                if(keys.next()){
+                if (keys.next()) {
                     projekt.setProjektId(keys.getInt(1));
                 }
                 keys.close();
             }
-        }
-        catch(SQLException ex){
+        } catch (SQLException ex) {
             System.out.println(ex.getMessage());
+        }
+
+        return IsSuccess;
+    }
+
+    @Override
+    public boolean Delete(Integer projektId) {
+        boolean IsSuccess = false;
+        String query = "DELETE FROM projekt WHERE projekt_id = ?";
+
+        try (Connection connection = DataSource.GetConnection()) {
+            PreparedStatement statement = connection.prepareStatement(query);
+
+            if(projektId != null){
+                statement.setInt(1, projektId);
+
+                IsSuccess = statement.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return IsSuccess;
@@ -63,21 +81,21 @@ public class Database implements IDatabase {
         List<Projekt> projekty = new ArrayList<>();
         String query = "SELECT * FROM projekt " +
                 "ORDER BY dataczas_utworzenia DESC"
-                +(offset != null ? " OFFSET ?" : "")
-                +(limit != null ? " LIMIT ?" : "");
+                + (offset != null ? " OFFSET ?" : "")
+                + (limit != null ? " LIMIT ?" : "");
 
-        try(Connection connection = DriverManager.getConnection(DatabaseSettings.DBURL, DatabaseSettings.DBUSER, DatabaseSettings.DBPASS)){
+        try (Connection connection = DataSource.GetConnection()) {
             PreparedStatement statement = connection.prepareStatement(query);
-            if(offset != null){
+            if (offset != null) {
                 statement.setInt(1, offset);
             }
 
-            if(limit != null){
+            if (limit != null) {
                 statement.setInt(offset == null ? 1 : 2, limit);
             }
 
             ResultSet results = statement.executeQuery();
-            while(results.next()){
+            while (results.next()) {
                 Projekt projekt = new Projekt();
                 projekt.setProjektId(results.getInt("projekt_id"));
                 projekt.setNazwa(results.getString("nazwa"));
@@ -86,8 +104,7 @@ public class Database implements IDatabase {
                 projekt.setDataOddania(results.getObject("data_oddania", LocalDate.class));
                 projekty.add(projekt);
             }
-        }
-        catch(Exception ex){
+        } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
         return projekty;
